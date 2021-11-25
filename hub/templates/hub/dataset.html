@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+    <link rel="stylesheet" href="{% static 'hub/leaflet.css' %}">
+    <link rel="manifest" href="{% static 'hub/hazo.webmanifest' %}">
+    <title>Hazo</title>
+  <script type="module" crossorigin src="{% static 'hub/assets/index.d9d67821.js' %}"></script>
+  <link rel="modulepreload" href="{% static 'hub/assets/vendor.71277feb.js' %}">
+<link rel="stylesheet" href="{% static 'hub/assets/style.60b0b6c6.css' %}">
+</head>
+  <body>
+    <script type="application/json" id="preloaded-dataset" data-registry="{% url 'index' %}">
+      {{ preloaded_dataset|safe }}
+    </script>
+    <style media="print">
+        .no-print { display: none; }
+        .scroll { overflow: visible; }
+        #app { overflow: visible; }
+    </style>
+    <noscript>
+      <strong>We're sorry but Hazo doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    
+  </body>
+</html>

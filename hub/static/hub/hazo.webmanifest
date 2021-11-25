@@ -1,0 +1,12 @@
+{
+    "name": "Hazo",
+    "short_name": "Hazo",
+    "description": "A Taxonomy Webapplication.",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/",
+    "icons": [{
+      "src": "icons/sunflower.svg",
+      "sizes": "150x150"
+    }]
+  }

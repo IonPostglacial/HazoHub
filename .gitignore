@@ -1,0 +1,8 @@
+env
+private
+.vscode
+*.sqlite3
+**/__pycache__
+hub/static/hub/assets
+hub/static/hub/fonts
+hub/static/hub/icons

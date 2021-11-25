@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+    <title>Hazo Hub</title>
+</head>
+<body>
+    <section class="medium-padding">
+        <h1>Home of  {{ user.username }}</h1>
+        <a href="../">Hazo</a>
+        <a href="databases">Databases</a>
+    </section>
+</body>
+</html>
