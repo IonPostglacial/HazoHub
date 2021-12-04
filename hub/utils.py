@@ -6,7 +6,7 @@ import os, re
 from hub.models import FileSharing
 
 
-PRIVATE_PATH = Path(__file__).parent.parent / 'private'
+PRIVATE_PATH = Path(__file__).resolve().parent.parent / 'private'
 
 def user_private_folder(user: AbstractBaseUser) -> Path:
     return PRIVATE_PATH / user.get_username()
