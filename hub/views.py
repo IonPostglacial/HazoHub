@@ -36,6 +36,8 @@ def _post_dataset(req: HttpRequest):
     else:
         file_name = utils.secure_filename(file.name)
         file_path = utils.user_file_path(req.user, file_name)
+        if default_storage.exists(str(file_path)):
+            default_storage.delete(str(file_path))
         default_storage.save(str(file_path), file)
 
 @login_required
