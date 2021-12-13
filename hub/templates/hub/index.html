@@ -7,12 +7,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'hub/style.css' %}">
     <title>Hazo Hub</title>
+    <style>
+        h1 { font-size: 14px; padding: 4px 8px; margin: 2px; }
+    </style>
 </head>
 <body>
-    <section class="medium-padding">
-        <h1>Home of  {{ user.username }}</h1>
-        <a href="../">Hazo</a>
-        <a href="databases">Databases</a>
-    </section>
+    <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
+        <h1>Home of {{ user.username }}</h1>
+        <a class="button" href="/admin">Go to Administration</a>
+    </nav>
+    <div class="horizontal-flexbox cented-aligned">
+        <section class="medium-padding">
+            <a href="../">Hazo</a>
+            <a href="databases">Databases</a>
+        </section>
+    </div>
 </body>
 </html>

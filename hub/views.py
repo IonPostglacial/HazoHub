@@ -2,6 +2,7 @@ from django.core.files.storage import default_storage
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
 from django.http.response import FileResponse, Http404, JsonResponse
+from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from pathlib import Path
@@ -9,7 +10,8 @@ from pathlib import Path
 import os, random, urllib, string
 
 from . import utils
-from .models import FileSharing
+from .models import Character, Dataset, FileSharing, TaxonState
+from .codec.hazo import import_hazo
 
 
 @login_required
@@ -52,7 +54,11 @@ def databases(req: HttpRequest):
             _post_dataset(req)
             status = "ok"
         except Exception as e:
-            error_msg = str(e) 
+            error_msg = str(e)
+    elif 'btn-import' in req.POST:
+        file_name = req.POST['btn-import']
+        file_path = utils.user_file_path(req.user, file_name)
+        import_hazo(file_path)
     elif 'btn-delete' in req.POST:
         file_name = req.POST['btn-delete']
         file_path = utils.user_file_path(req.user, file_name)
@@ -76,14 +82,16 @@ def databases(req: HttpRequest):
         file_full_path = utils.user_file_path(req.user, file_name)
         FileSharing.objects.filter(file_path=str(file_full_path)).delete()
     shared_files = { file.file_path: file for file in FileSharing.objects.all() }
+    imported_files = { path for path in Dataset.objects.all().values_list('src', flat=True) }
     personal_files = []
     for file in utils.user_files(req.user):
         if not file.is_dir():
+            is_imported = str(file) in imported_files
             is_shared = str(file) in shared_files
             link = ""
             if is_shared:
                 link = shared_files.get(str(file)).share_link
-            personal_files.append({'name': file.name, 'shared': is_shared, 'link': link  })
+            personal_files.append({'name': file.name, 'shared': is_shared, 'imported': is_imported, 'link': link  })
     context = {
         'status': status,
         'user': req.user,
@@ -153,3 +161,52 @@ def picture(req: HttpRequest, username: str, filename: str):
         raise Http404()
     else:
         return FileResponse(open(full_path, "rb"), filename=filename)
+
+@login_required
+def dataset_summary(req: HttpRequest, file_name: str):
+    file_path = utils.user_file_path(req.user, file_name)
+    dataset: Dataset = Dataset.objects.filter(src=file_path).first()
+    if dataset is None:
+        raise Http404(f"There is no dataset named {file_path}")
+    characters = Character.objects.filter(item__dataset=dataset)
+    selected_character_ids = list(map(int, req.POST.getlist('character')))
+    states_taxon_count = TaxonState.objects.filter(state__character__item__id__in=selected_character_ids).values('state__item__name').annotate(num_taxons=Count('taxon'))
+
+    return render(req, 'hub/summary.html', {
+        'dataset_name': file_path.stem,
+        'characters': characters,
+        'selected_character_ids': selected_character_ids,
+        'states_taxon_count': states_taxon_count
+    })
+
+@login_required
+@csrf_exempt
+def api_get_states_uses_count(req: HttpRequest, dataset_name: str, state_ref_str: str):
+    dataset: Dataset = Dataset.objects.filter(name=dataset_name).first()
+    if dataset is None:
+        return JsonResponse({ 'status': 'ko' })
+    state_refs = state_ref_str.split(",")
+    states_taxon_count = TaxonState.objects.filter(state__item__ref__in=state_refs).values('state__item__ref').annotate(num_taxons=Count('taxon'))
+
+    return JsonResponse({ count['state__item__ref']: count['num_taxons'] for count in states_taxon_count })
+
+
+@login_required
+def bibtex(req: HttpRequest):
+    if 'bibtex-file' in req.FILES:
+        file = req.FILES['bibtex-file']
+        csvcontent = utils.bibtex_to_csv(file)
+        return FileResponse(csvcontent, filename="biblio.csv", content_type="text/csv")
+    else:
+        return render(req, 'hub/biblio.html', {})
+
+@login_required
+def texcite(req: HttpRequest):
+    if 'bibtex-file' in req.FILES and 'word-text' in req.POST:
+        file = req.FILES['bibtex-file']
+        text = req.POST['word-text']
+        text = utils.auto_cite(file, text)
+    else:
+        text = "Enter biblio and text."
+    return render(req, 'hub/texcite.html', { 'text': text })
+    
