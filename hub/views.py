@@ -2,7 +2,7 @@ from django.core.files.storage import default_storage
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
 from django.http.response import FileResponse, Http404, JsonResponse
-from django.db.models import Count
+from django.db.models import Count, F
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from pathlib import Path
@@ -190,23 +190,16 @@ def api_get_states_uses_count(req: HttpRequest, dataset_name: str, state_ref_str
 
     return JsonResponse({ count['state__item__ref']: count['num_taxons'] for count in states_taxon_count })
 
-
 @login_required
-def bibtex(req: HttpRequest):
-    if 'bibtex-file' in req.FILES:
-        file = req.FILES['bibtex-file']
-        csvcontent = utils.bibtex_to_csv(file)
-        return FileResponse(csvcontent, filename="biblio.csv", content_type="text/csv")
-    else:
-        return render(req, 'hub/biblio.html', {})
+@csrf_exempt
+def api_get_taxons_with_states(req: HttpRequest, dataset_name: str, state_ref_str: str):
+    dataset: Dataset = Dataset.objects.filter(name=dataset_name).first()
+    if dataset is None:
+        return JsonResponse({ 'status': 'ko' })
+    state_refs = state_ref_str.split(",")
+    taxons_with_states = TaxonState.objects.filter(state__item__ref__in=state_refs).annotate(
+        state_ref=F('state__item__ref'), 
+        taxon_ref=F('taxon__item__ref')).values('state_ref', 'taxon_ref')
 
-@login_required
-def texcite(req: HttpRequest):
-    if 'bibtex-file' in req.FILES and 'word-text' in req.POST:
-        file = req.FILES['bibtex-file']
-        text = req.POST['word-text']
-        text = utils.auto_cite(file, text)
-    else:
-        text = "Enter biblio and text."
-    return render(req, 'hub/texcite.html', { 'text': text })
+    return JsonResponse({ 'status': 'ok', 'taxons': list(taxons_with_states) })
     
