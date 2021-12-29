@@ -1,6 +1,9 @@
 from pathlib import Path
 from django.contrib.auth.base_user import AbstractBaseUser
-from hub.models import FileSharing
+from hub.models import FileSharing, ItemPicture
+from django.core import files
+from io import BytesIO
+import requests
 
 import os, re
 
@@ -46,3 +49,19 @@ def secure_filename(filename: str) -> str:
     filename = str(_filename_ascii_strip_re.sub("", "_".join(filename.split()))).strip("._")
 
     return filename
+
+def download_images(file_path: Path):
+    pics = ItemPicture.objects.filter(item__dataset__src=file_path)
+    for pic in pics:
+        pic.url
+        try:
+            resp = requests.get(pic.url)
+        except:
+            continue
+        if resp.status_code != requests.codes.ok:
+            print(f"could not reach {pic.url}")
+            continue
+        fp = BytesIO()
+        fp.write(resp.content)
+        file_name = pic.url.split("/")[-1]
+        pic.photo.save(file_name, files.File(fp))

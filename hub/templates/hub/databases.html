@@ -33,6 +33,8 @@
                         <div class="inline-block">
                             {% if file.imported %}
                             <a href="{% url 'summary' file.name %}">Summary</a>
+                            <a href="{% url 'characterslist' file.name %}">Identify</a>
+                            <button name="btn-download-img" value="{{ file.name }}">Download imgs</button>
                             {% else %}
                             <button name="btn-import" value="{{ file.name }}">Import</button>
                             {% endif %}

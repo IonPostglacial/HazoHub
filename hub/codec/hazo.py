@@ -4,7 +4,7 @@ from os import stat
 import pathlib
 import dataclasses
 
-from hub.models import Dataset, Book, ExtraField, Hierarchy, Item, Character, ItemName, Language, State, Taxon, TaxonState
+from hub.models import Dataset, Book, ExtraField, Hierarchy, Item, Character, ItemName, ItemPicture, Language, State, Taxon, TaxonState
 
 
 @dataclasses.dataclass
@@ -16,6 +16,23 @@ class ItemInfo:
     author: str = ""
     detail: str = ""
     states_refs: list = None
+    pics: list = ""
+
+@dataclasses.dataclass
+class Picture:
+    ref: str
+    url: str
+    label: str
+
+
+def photo_to_picture(photo: dict) -> Picture:
+    url = photo['url']
+    label = photo['label']
+    while isinstance(url, list) and len(url) > 0:
+        url = url[0]
+    while isinstance(label, list) and len(label) > 0:
+        label = label[0]
+    return Picture(ref=photo['id'], url=url, label=label)
 
 def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
     hazo_ds = json.load(input)
@@ -39,7 +56,8 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 'FR': state.get('name') or "",
                 'EN': state.get('nameEN') or "",
                 'CN': state.get('nameCN') or "",
-            }
+            },
+            pics=map(photo_to_picture, state['photos']),
         )
         items.append(state_item)
     for hazo_ch in hazo_ds['characters']:
@@ -53,6 +71,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 'CN': hazo_ch['nameCN'],    
             },
             states_refs=hazo_ch['states'],
+            pics=map(photo_to_picture, hazo_ch['photos']),
         )
         items.append(item)
         hierarchical_item.append(item)
@@ -73,6 +92,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
             states_refs=states_refs,
             author=hazo_taxon['author'],
             detail=hazo_taxon['detail'],
+            pics=map(photo_to_picture, hazo_taxon['photos']),
         )
         items.append(item)
         hierarchical_item.append(item)
@@ -81,6 +101,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
     taxons = []
     states_by_id = {}
     names = []
+    pics = []
     hierarchies = []
     taxon_states = []
     for item in Item.objects.filter(dataset__id=ds.id):
@@ -93,6 +114,9 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
             item_name = ItemName(item=item, text=value)
             item_name.lang_id = lang_code
             names.append(item_name)
+        for pic in info.pics:
+            pics.append(ItemPicture(item=item, url=pic.url, label=pic.label))
+        
     hierarchies_self = []
     for h_item in hierarchical_item:
         item_id = items_info_by_ref[h_item.ref].id
@@ -129,6 +153,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 nodes_to_item.append(node)
             Hierarchy.objects.bulk_create(nodes_to_item)
     ItemName.objects.bulk_create(names)
+    ItemPicture.objects.bulk_create(pics)
     Character.objects.bulk_create(characters)
     Taxon.objects.bulk_create(taxons)
     State.objects.bulk_create(states_by_id.values())

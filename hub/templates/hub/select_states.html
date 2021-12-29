@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+    <title>Document</title>
+    <style>
+        h1 { font-size: 14px; padding: 4px 8px; margin: 2px; }
+    </style>
+</head>
+<body>
+    <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
+        <a class="button" href="{% url 'index' %}">Back to Hub</a>
+        <h1>Select a state</h1>
+        <a class="button" href="/admin">Go to Administration</a>
+    </nav>
+    {% if not toplevel %}
+    <a class="button" href="{% url 'characterslist' file_name %}">Top characters</a>
+    {% endif %}
+    <form method="POST" action="{% url 'characterslist' file_name %}" class="horizontal-flexbox">
+        {% csrf_token %}
+        <ul class="horizontal-flexbox flex-wrap relative">
+        {% for state in states %}
+            <li class="medium-square relative vertical-flexbox full-background thin-border white-background medium-padding medium-margin"
+                    style="background-image: url('{{ state.img }}');">
+                <ul class="no-list-style">
+                    {% for lang, text in state.names.items %}
+                    <li>{{ text }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="button-group">
+                    <button class="button background-color-1" name="select-state" value="{{ state.id }}">Select</button>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    </form>
+</body>
+</html>

@@ -53,6 +53,10 @@ class ItemPicture(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     url = models.CharField(max_length=512)
     label = models.CharField(max_length=256)
+    photo = models.ImageField(upload_to='static/img', null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.item}'
 
 class Language(models.Model):
     code = models.CharField(max_length=2, primary_key=True)
@@ -74,8 +78,8 @@ class ItemName(models.Model):
 class Hierarchy(models.Model):
     class Meta:
         unique_together = (('ancestor', 'descendant'),)
-    ancestor = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='+')
-    descendant = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='+')
+    ancestor = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='descendants')
+    descendant = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='ancestors')
     length = models.IntegerField(default=0)
 
     def __str__(self):
