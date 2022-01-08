@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Databases</title>
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+</head>
+<body>
+    <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
+        <a class="button" href="./">Back to home</a>
+        <a class="button" href="/admin">Go to Administration</a>
+    </nav>
+    <div class="horizontal-flexbox cented-aligned">
+        <section class="medium-padding">
+            <style>
+                .private-link {
+                    display: inline-block;
+                    min-width: 300px;
+                }
+            </style>
+            <h2>Your list of databases</h2>
+            <form method="POST">
+            {% csrf_token %}
+            <ul id="db-grid-list">
+                {% for file in personal_files %}
+                    <li class="file-list-item"
+                            data-file="{{ file.name }}"
+                            data-state="{% if file.shared %}shared{% else %}unshared{% endif %}">
+                        <a class="private-link" href="{% url 'privatefiles' file.name %}">{{ file.name }}</a>
+                        <a href="/Hazo/#/?from={% url 'privatefiles' file.name %}">Open in Hazo</a>
+                        <div class="inline-block">
+                            {% if file.imported %}
+                            <a href="{% url 'summary' file.name %}">Summary</a>
+                            <a href="{% url 'charlist' file.name %}">Identify</a>
+                            <button name="btn-download-img" value="{{ file.name }}">Download imgs</button>
+                            {% else %}
+                            <button name="btn-import" value="{{ file.name }}">Import</button>
+                            {% endif %}
+                            {% if file.shared %}
+                            <button class="button" type="submit" name="btn-unshare" value="{{ file.name }}">
+                                Unshare
+                            </button>
+                            <a class="button" href="{% url 'dataset' file.link %}">link for sharing</a>
+                            {% else %}
+                            <button type="submit" class="button" name="btn-share" value="{{ file.name }}">
+                                Share
+                            </button>
+                            {% endif %}
+                            <button type="submit" name="btn-delete" value="{{ file.name }}">Delete</button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            </form>
+            <h2>Upload a new database</h2>
+            <form method="POST" enctype="multipart/form-data" class="form-grid">
+                {% csrf_token %}
+                <label>Database file</label><input type="file" name="db-file-upload" id="db-file-upload">
+                <button type="submit" name="btn-upload" class="background-color-1">Upload</button>
+            </form>
+        </section>
+    </div>
+    {% if status == 'ko' %}
+    <p>{{ error_msg }}</p>
+    {% endif %}
+</body>
+</html>

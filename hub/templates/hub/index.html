@@ -18,8 +18,11 @@
     </nav>
     <div class="horizontal-flexbox cented-aligned">
         <section class="medium-padding">
-            <a href="../">Hazo</a>
-            <a href="databases">Databases</a>
+            <ul>
+                <li><a href="../">Hazo</a></li>
+                <li><a href="{% url 'datasetlist' %}">Databases</a></li>
+                <li><a href="{% url 'dictentrylist' %}">Dictionary</a></li>
+            </ul>
         </section>
     </div>
 </body>

@@ -142,9 +142,22 @@ class TaxonState(models.Model):
     def __str__(self):
         return f'{self.taxon} > {self.state}'
 
+class DictionaryVersion(models.Model):
+    number = models.PositiveIntegerField(primary_key=True)
+    created_on = models.DateTimeField()
+
+class DictionaryOrgan(models.Model):
+    name = models.CharField(max_length=256)
+
+    def __str__(self):
+        return f'{self.name}'
+
 class DictionaryEntry(models.Model):
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    url: models.CharField(512)
+    creation_version = models.ForeignKey(DictionaryVersion, on_delete=models.SET_NULL, null=True, related_name='created_entries')
+    deletion_version = models.ForeignKey(DictionaryVersion, on_delete=models.CASCADE, null=True, blank=True, related_name='deleted_entries')
+    url = models.CharField(max_length=512, default="")
+    number = models.PositiveIntegerField(null=True, blank=True)
+    organ = models.ForeignKey(DictionaryOrgan, null=True, blank=True, on_delete=models.SET_NULL)
 
 class DictionaryEntryByLang(models.Model):
     class Meta:

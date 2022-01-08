@@ -133,6 +133,10 @@ ul {
     object-fit: contain;
 }
 
+.number {
+    text-align: right;
+}
+
 .fill {
     display: flex;
     justify-content: center;
@@ -182,6 +186,11 @@ input[type="text"] {
 .form-grid {
 	display: grid;
 	grid-template-columns: 1fr 2fr;
+}
+
+.grid-1-4-1 {
+    display: grid;
+    grid-template-columns: 5ch 4fr 1fr;
 }
 
 .page-break {

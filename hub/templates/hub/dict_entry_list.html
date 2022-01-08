@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+    <script src="{% static 'htmx.min.js' %}"></script>
+    <title>Hazo Hub</title>
+    <style>
+        h1 { font-size: 14px; padding: 4px 8px; margin: 2px; }
+    </style>
+</head>
+<body>
+    <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
+        <a class="button" href="{% url 'index' %}">Back to Hub</a>
+        <h1>Dictionary</h1>
+        <a class="button" href="/admin">Go to Administration</a>
+    </nav>
+    <main class="medium-padding vertical-flexbox cented-aligned">
+        <form class="medium-padding" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" name="new-entry" id="new-entry-hidden" class="invisible">
+            <input type="file" name="csv-file" id="csv-file">
+            <button type="submit" name="import-csv">Import CSV</button>
+        </form>
+        <form method="GET">
+            <input type="search" name="filter" id="filter" autofocus
+                hx-get="{% url 'dictentryfilteredlist' %}"
+                hx-trigger="keyup delay:300ms changed"
+                hx-target="#entry-list">
+            <button type="submit">Filter Entries</button>
+        </form>
+        <form class="medium-padding horizontal-flexbox start-aligned" method="POST">
+            {% csrf_token %}
+            <div id="entry-list">
+                {% include 'hub/fragments/dict_list.html' %}
+            </div>
+            <div id="entry-details" class="form-grid">
+                {% include 'hub/fragments/dict_details.html' %}
+            </div>
+        </form>
+    </main>
+</body>

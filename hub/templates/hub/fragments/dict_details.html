@@ -1,0 +1,30 @@
+{% if entry %}
+
+{% for lang, name in entry.names.items %}
+<label for="name-{{ lang }}">Name ({{ lang }})</label><input type="text" name="name-{{ lang }}" id="name-{{ lang }}" value="{{ name }}">
+{% endfor %}
+<label for="illustration">Illustration</label>
+<div class="vertical-flexbox">
+    {% if entry.illustration %}
+    <img src="{{ entry.illustration }}" class="limited-width"><br/>
+    {% endif %}
+    <input type="text" name="illustration" id="illustration" value="{{ entry.illustration }}">
+</div>
+<label for="number">Number</label>
+<input type="number" name="number" id="number" value="{{ entry.number }}">
+<label for="organ">Organ</label>
+<select name="organ" id="organ">
+    <option value="">&nbsp;</option>
+    {% for organ in organs %}
+        <option value="{{ organ.id }}" {% if organ.id == entry.organ.id %}selected{% endif %}>{{ organ.name }}</option>
+    {% endfor %}
+    </select>
+{% for lang, def in entry.definitions.items %}
+<label for="def-{{ lang }}">Definition ({{ lang }})</label>
+<textarea class="rich-editor" name="def-{{ lang }}" id="def-{{ lang }}">
+    {{ def }}
+</textarea>
+{% endfor %}
+<button type="submit" class="background-color-1" name="edit-entry" value="{{ entry.id }}">Save</button>
+
+{% endif %}
