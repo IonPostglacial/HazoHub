@@ -8,7 +8,7 @@ from pathlib import Path
 
 import urllib
 
-from . import characters, dataset, dict, utils
+from . import utils
 from ..models import Dataset, FileSharing, TaxonState
 
 
