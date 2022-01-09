@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from . import utils
 from ..codec.hazo import import_hazo
-from ..models import Character, Dataset, FileSharing, TaxonState
+from ..models import Character, Dataset, FileSharing, Taxon, TaxonState
 
 import os, random, string
 
@@ -49,6 +49,12 @@ def list_view(req: HttpRequest):
             status = "ok"
         except Exception as e:
             error_msg = str(e)
+    elif 'btn-reimport' in req.POST:
+        file_name = req.POST['btn-reimport']
+        file_path = utils.user_file_path(req.user, file_name)
+        ds = Dataset.objects.filter(src=file_path)
+        ds.delete()
+        import_hazo(file_path)
     elif 'btn-import' in req.POST:
         file_name = req.POST['btn-import']
         file_path = utils.user_file_path(req.user, file_name)
@@ -113,6 +119,15 @@ def summary(req: HttpRequest, file_name: str):
         'characters': characters,
         'selected_character_ids': selected_character_ids,
         'states_taxon_count': states_taxon_count
+    })
+
+@login_required
+def taxon(req: HttpRequest, id):
+    taxon = Taxon.objects.select_related('item').prefetch_related('item__pictures').get(item_id=id)
+    if not taxon:
+        return Http404("There is no taxon with this id")
+    return render(req, 'hub/dataset_taxon.html', {
+        'taxon': taxon
     })
 
 @login_required

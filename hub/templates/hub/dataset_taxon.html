@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ dataset.name }} {{ taxon.item.name }}</title>
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+</head>
+<body>
+    <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
+        <a class="button" href="{% url 'datasetlist' %}">Datasets</a>
+        <a class="button" href="/admin">Go to Administration</a>
+    </nav>
+    <h1>{{ taxon.item.name }}</h1>
+    <div class="horizontal-flexbox">
+    {% for picture in taxon.item.pictures.all %}
+        <div class="fill">
+            <img class="medium-margin thin-border" src="{{ picture.url }}" alt="{{ picture.label }}">
+        </div>
+    {% endfor %}
+    </div>
+    {% if taxon.website %}
+    <a href="{{ taxon.website }}" target="_blank">{{ taxon.website }}</a>
+    {% endif %}
+</body>
+</html>

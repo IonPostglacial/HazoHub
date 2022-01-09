@@ -13,6 +13,7 @@ class ItemInfo:
     type: str
     parent_ref: str
     names: dict
+    website: str = ""
     author: str = ""
     detail: str = ""
     states_refs: list = None
@@ -89,6 +90,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 'V': hazo_taxon['vernacularName'],
                 'CN': hazo_taxon['nameCN'],    
             },
+            website=hazo_taxon['website'],
             states_refs=states_refs,
             author=hazo_taxon['author'],
             detail=hazo_taxon['detail'],
@@ -135,7 +137,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 state.character_id = info.id
                 states_by_id[state_info.id] = state
         elif info.type == 'taxon':
-            taxon = Taxon(author=info.author, description=info.detail)
+            taxon = Taxon(author=info.author, description=info.detail, website=info.website)
             taxon.item_id = info.id
             taxons.append(taxon)
             for state_ref in info.states_refs:

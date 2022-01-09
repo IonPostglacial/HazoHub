@@ -60,7 +60,7 @@
                 <h2 class="nowrap">Matching taxons ({{ matches|length }})</h2>
                 <ul>
                 {% for taxon in matches %}
-                    <li>{{ taxon.name }}</li>
+                    <li><a href="{% url 'taxon' taxon.id %}">{{ taxon.name }}</a></li>
                 {% endfor %}
                 </ul>
             </section>

@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.index, name="index"),
     path('databases', views.dataset.list_view, name="datasetlist"),
     path('dataset/<str:dataset_link>', views.dataset.details, name="dataset"),
+    path('taxon/<int:id>', views.dataset.taxon, name="taxon"),
     path('summary/<str:file_name>', views.dataset.summary, name="summary"),
     path('dictionary', views.dict.entry_list, name="dictentrylist"),
     path('dictionary-filtered-list', views.dict.filtered_list, name="dictentryfilteredlist"),

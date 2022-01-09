@@ -50,7 +50,7 @@ class Item(models.Model):
         return self.name
 
 class ItemPicture(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="pictures")
     url = models.CharField(max_length=512)
     label = models.CharField(max_length=256)
     photo = models.ImageField(upload_to='static/img', null=True, blank=True)
@@ -111,6 +111,7 @@ class Taxon(models.Model):
     item = models.OneToOneField(Item, on_delete=models.CASCADE, primary_key=True)
     author = models.CharField(max_length=256)
     description = models.TextField(null=True, blank=True)
+    website = models.CharField(max_length=512, null=True, blank=True)
 
     def __str__(self):
         if self.author:

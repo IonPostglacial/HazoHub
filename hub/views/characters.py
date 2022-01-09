@@ -35,7 +35,7 @@ def list_view(req: HttpRequest, file_name: str, in_character: int = 0):
         matching_taxons = []
     matches = []
     for taxon_state in matching_taxons:
-        matches.append({ 'name': taxon_state.taxon.item.name })
+        matches.append({ 'name': taxon_state.taxon.item.name, 'id': taxon_state.taxon.item.id })
     chars = []
     if in_character == 0:
         characters = filter(lambda c: c.item.ancestors.count() == 1, Character.objects.filter(item__dataset=dataset))
@@ -44,7 +44,7 @@ def list_view(req: HttpRequest, file_name: str, in_character: int = 0):
         hierarchies = Hierarchy.objects.filter(length=1).filter(ancestor__id=in_character)
         items = map(lambda h: h.descendant, hierarchies)
     for item in items:
-        imgs = item.itempicture_set.all()
+        imgs = item.pictures.all()
         img = ""
         if len(imgs) > 0:
             img = imgs[0].url
@@ -74,7 +74,7 @@ def states_list(req: HttpRequest, file_name: str, in_character: int):
     character_states = State.objects.filter(item__dataset=dataset).filter(character_id=in_character)
     states = []
     for s in character_states:
-        imgs = s.item.itempicture_set.all()
+        imgs = s.item.pictures.all()
         img = ""
         if len(imgs) > 0:
             img = imgs[0].url
