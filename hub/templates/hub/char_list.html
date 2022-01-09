@@ -25,9 +25,12 @@
         <form method="POST">
             {% csrf_token %}
             <h2>Selected states</h2>
-            {% for state in selected_states %}
-                <button class="horizontal-flexbox" title="Unselect" name="unselect-state" value="{{ state.item_id }}">{{ state.item__name }}<div class="close"></div></button>
-            {% endfor %}
+            <div class="horizontal-flexbox">
+                <button class="horizontal-flexbox" title="Unselect All" name="unselect-all-state" value="1">Unselect all</button>
+                {% for state in selected_states %}
+                    <button class="horizontal-flexbox" title="Unselect" name="unselect-state" value="{{ state.item_id }}">{{ state.item__name }}<div class="close"></div></button>
+                {% endfor %}
+            </div>
         </form>
         </ul>
         <div class="horizontal-flexbox">

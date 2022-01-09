@@ -14,6 +14,9 @@ def list_view(req: HttpRequest, file_name: str, in_character: int = 0):
         selected_states_ids = set()
     else:
         selected_states_ids = set(selected_states_ids)
+    if 'unselect-all-state' in req.POST:
+        selected_states_ids = []
+        req.session['selected_states'] = []
     if 'select-state' in req.POST:
         selected_states_ids.add(req.POST['select-state'])
         req.session['selected_states'] = list(selected_states_ids)
@@ -25,7 +28,11 @@ def list_view(req: HttpRequest, file_name: str, in_character: int = 0):
     if dataset is None:
         raise Http404(f"There is no dataset named {file_path}")
     selected_states = State.objects.select_related('item').filter(item_id__in=selected_states_ids).values('item_id', 'item__name')
-    matching_taxons = TaxonState.objects.filter(state__item__dataset=dataset).filter(state__in=selected_states_ids)
+    matching_taxons = TaxonState.objects.select_related('taxon', 'taxon__item').filter(state__item__dataset=dataset)
+    for state in selected_states_ids:
+        matching_taxons = matching_taxons.filter(state=state)
+    if not selected_states_ids:
+        matching_taxons = []
     matches = []
     for taxon_state in matching_taxons:
         matches.append({ 'name': taxon_state.taxon.item.name })
