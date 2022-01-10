@@ -11,10 +11,11 @@ from ..models import DictionaryEntry, DictionaryEntryByLang, DictionaryOrgan, La
 
 
 def _filtered_entry_list(req: HttpRequest):
+    dict_entries = DictionaryEntryByLang.objects.select_related('entry').order_by('entry__number', 'entry')
     if 'filter' in req.GET:
-        dictionary_entries = DictionaryEntryByLang.objects.order_by('entry').filter(name__startswith=req.GET['filter'])
+        dictionary_entries = dict_entries.filter(name__startswith=req.GET['filter'])
     else:
-        dictionary_entries = DictionaryEntryByLang.objects.order_by('entry').all()
+        dictionary_entries = dict_entries.all()
     paginator = Paginator(dictionary_entries, 25*3)
     page_number = req.GET.get('page')
     page_obj = paginator.get_page(page_number)
