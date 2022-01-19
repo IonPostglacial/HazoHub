@@ -6,23 +6,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+    <script src="{% static 'htmx.min.js' %}"></script>
     <script src="{% static 'ckeditor5/ckeditor.js' %}"></script>
     <title>Hazo Hub</title>
     <style>
         h1 { font-size: 14px; padding: 4px 8px; margin: 2px; }
     </style>
-    <script>
-        window.addEventListener("load", function (e) {
-            const richEditors = Array.from(document.getElementsByClassName("rich-editor"));
-            richEditors.forEach(editor => {
-                ClassicEditor
-                    .create(editor)
-                    .catch(error => {
-                        console.error( error );
-                    });
-            });
-        });
-    </script>
+    <script src="{% static 'hub/dict.js' %}"></script>
 </head>
 <body>
     <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
@@ -31,7 +21,7 @@
         <a class="button" href="/admin">Go to Administration</a>
     </nav>
     <main class="vertical-flexbox cented-aligned">
-        <form class="form-grid" method="POST" action="{% url 'dictentrylist' %}">
+        <form class="form-grid" method="POST" action="{% url 'dictentrylist' %}" onload="hydrateRichEditors">
             {% csrf_token %}
             {% include 'hub/fragments/dict_details.html' %}
         </form>

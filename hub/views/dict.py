@@ -6,38 +6,41 @@ from django.http.response import HttpResponseBadRequest
 from django.shortcuts import redirect, render
 
 import codecs
+import dataclasses
 from ..codec import dictionarycsv
 from ..models import DictionaryEntry, DictionaryEntryByLang, DictionaryOrgan, Language
 
 
+@dataclasses.dataclass
+class Entry:
+    id: int
+    number: str
+    names: dict
+
 def _filtered_entry_list(req: HttpRequest):
-    dict_entries = DictionaryEntryByLang.objects.select_related('entry').order_by('entry__number', 'entry')
+    dict_entries = DictionaryEntry.objects.prefetch_related('translations').order_by('number')
     if 'filter' in req.GET:
-        dictionary_entries = dict_entries.filter(name__startswith=req.GET['filter'])
+        dictionary_entries = dict_entries.filter(translations__name__startswith=req.GET['filter']).distinct()
     else:
-        dictionary_entries = dict_entries.all()
-    paginator = Paginator(dictionary_entries, 25*3)
+        dictionary_entries = dict_entries.distinct()
+    paginator = Paginator(dictionary_entries, 250)
     page_number = req.GET.get('page')
     page_obj = paginator.get_page(page_number)
     entries = []
-    last_entry = None
-    for entry_by_lang in page_obj.object_list:
-        if last_entry is None or last_entry['id'] != entry_by_lang.entry.id:
-            last_entry = {
-                'id': entry_by_lang.entry.id,
-                'number': entry_by_lang.entry.number if entry_by_lang.entry.number is not None else '',
-                'names': {},
-            }
-            entries.append(last_entry)
-        last_entry['names'][entry_by_lang.lang.code] = entry_by_lang.name
+    for entry in page_obj.object_list:
+        entries.append(Entry(
+            id=entry.id, 
+            number=entry.number if entry.number is not None else '',
+            names={ t.lang.code: t.name for t in entry.translations.all() }
+        ))
     return entries, page_obj
 
 def _entry_details(req: HttpRequest, id):
-    entry = DictionaryEntry.objects.get(id=id)
+    entry = DictionaryEntry.objects.prefetch_related('translations').get(id=id)
     organs = DictionaryOrgan.objects.all()
     names = {}
     definitions = {}
-    for entry_lang in entry.dictionaryentrybylang_set.all():
+    for entry_lang in entry.translations.all():
         names[entry_lang.lang.code] = entry_lang.name
         definitions[entry_lang.lang.code] = entry_lang.definition
     return {
@@ -97,8 +100,26 @@ def entry_list(req: HttpRequest):
         'filter': f'&filter={filter}' if filter is not None else '',
     })
 
+def _filtered_list(req: HttpRequest, template):
+    entries, page_obj = _filtered_entry_list(req)
+    filter = req.GET.get('filter')
+    return render(req, template, {
+        'entries': entries,
+        'page_obj': page_obj,
+        'filter': f'&filter={filter}' if filter is not None else '',
+    })
+
 @login_required
 def filtered_list(req: HttpRequest):
+    return _filtered_list(req, 'hub/fragments/dict_list.html')
+
+@login_required
+def filtered_list_entries(req: HttpRequest):
+    return _filtered_list(req, 'hub/fragments/dict_list_entries.html')
+
+@login_required
+def delete_from_list(req: HttpRequest, id):
+    DictionaryEntry.objects.filter(id=id).delete()
     entries, page_obj = _filtered_entry_list(req)
     filter = req.GET.get('filter')
     return render(req, 'hub/fragments/dict_list.html', {

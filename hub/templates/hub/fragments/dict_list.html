@@ -1,19 +1,6 @@
-<section class="large-max-width ">
+<section>
     <ul class="medium-padding medium-margin grid-1-4-1">
-        {% for entry in entries %}
-        <li class="display-contents">
-            <div class="number medium-padding">{{ entry.number }}</div>
-            <a href="{% url 'dictentrydetails' entry.id %}"
-                    hx-get="{% url 'dictentrydetailsfragment' entry.id %}"
-                    hx-trigger="click"
-                    hx-target="#entry-details">
-                {% for lang, name in entry.names.items %}
-                    {{ name }}
-                {% endfor %}
-            </a>
-            <button class="close medium-padding" name="del-entry" value="{{ entry.id }}">&nbsp;</button>
-        </li>
-        {% endfor %}
+        {% include 'hub/fragments/dict_list_entries.html' %}
         <li class="display-contents">
             <div>&nbsp;</div>
             <input type="text" name="new-entry" id="new-entry">

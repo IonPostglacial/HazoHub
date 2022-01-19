@@ -1,0 +1,25 @@
+{% for entry in entries %}
+<li class="display-contents">
+    <div class="number medium-padding">{{ entry.number }}</div>
+    <a href="{% url 'dictentrydetails' entry.id %}"
+            hx-get="{% url 'dictentrydetailsfragment' entry.id %}"
+            hx-trigger="click"
+            hx-target="#entry-details">
+        {% for lang, name in entry.names.items %}
+            {{ name }}
+        {% endfor %}
+    </a>
+    <button class="close medium-padding" name="del-entry" value="{{ entry.id }}"
+        hx-get="{% url 'dictentrydeletefromlist' entry.id %}"
+        hx-include="#filter"
+        hx-trigger="click"
+        hx-target="#entry-list">&nbsp;</button>
+</li>
+{% endfor %}
+{% if page_obj.has_next %}
+<li class="grid-span-row" hx-get="{% url 'dictentryfilteredlistentries' %}?page={{ page_obj.next_page_number }}{{ filter }}"
+    hx-trigger="intersect once"
+    hx-swap="outerHTML">
+    ...
+</li>
+{% endif %}

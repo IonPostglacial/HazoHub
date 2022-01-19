@@ -193,6 +193,10 @@ input[type="text"] {
     grid-template-columns: 5ch 4fr 1fr;
 }
 
+.grid-span-row {
+    grid-column: 1 / -1;
+}
+
 .page-break {
     page-break-after: always;
 }
@@ -353,6 +357,16 @@ div.invisible {
 
 .limited-width {
     max-width: 400px;
+}
+
+.limited-height {
+    max-height: 400px;
+}
+
+.max-container {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .spaced {

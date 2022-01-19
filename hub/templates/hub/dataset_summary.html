@@ -31,6 +31,7 @@
     {% endfor %}
     in the dataset.
     </p>
+    <a href="{% url 'summarycsv' file_name %}{{ selected_character_ids_query }}" download="summary.csv" target="_blank">summary.csv</a>
     {% endif %}
 </body>
 </html>

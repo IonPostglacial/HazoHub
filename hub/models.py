@@ -163,7 +163,7 @@ class DictionaryEntry(models.Model):
 class DictionaryEntryByLang(models.Model):
     class Meta:
         unique_together = (('entry', 'lang'),)
-    entry = models.ForeignKey(DictionaryEntry, on_delete=models.CASCADE)
+    entry = models.ForeignKey(DictionaryEntry, on_delete=models.CASCADE, related_name='translations')
     lang = models.ForeignKey(Language, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
     definition = models.TextField()
