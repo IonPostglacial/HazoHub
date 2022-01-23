@@ -1,9 +1,9 @@
 import io
 import json
-from os import stat
 import pathlib
 import dataclasses
 
+from typing import Dict
 from hub.models import Dataset, Book, ExtraField, Hierarchy, Item, Character, ItemName, ItemPicture, Language, State, Taxon, TaxonState
 
 
@@ -18,6 +18,7 @@ class ItemInfo:
     detail: str = ""
     states_refs: list = None
     pics: list = ""
+
 
 @dataclasses.dataclass
 class Picture:
@@ -35,20 +36,24 @@ def photo_to_picture(photo: dict) -> Picture:
         label = label[0]
     return Picture(ref=photo['id'], url=url, label=label)
 
+
 def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
     hazo_ds = json.load(input)
     ds = Dataset(src=src, name=hazo_ds['id'])
     ds.save()
 
     for hazo_book in hazo_ds['books']:
-        Book.objects.update_or_create(ref=hazo_book['id'], label=hazo_book['label'])
+        Book.objects.update_or_create(
+            ref=hazo_book['id'], label=hazo_book['label'])
     for hazo_field in hazo_ds['extraFields']:
-        ExtraField.objects.update_or_create(ref=hazo_field['id'], std=hazo_field['std'], label=hazo_field['label'], icon=None)
+        ExtraField.objects.update_or_create(
+            ref=hazo_field['id'], std=hazo_field['std'], label=hazo_field['label'], icon=None)
     items = []
     hierarchical_item = []
-    items_info_by_ref = {}
+    items_info_by_ref: Dict[str, ItemInfo] = {}
     for state in hazo_ds['states']:
-        state_item = Item(dataset=ds, ref=state['id'], name=state.get('name') or state.get('nameEN') or state.get('nameCN') or "")
+        state_item = Item(dataset=ds, ref=state['id'], name=state.get(
+            'name') or state.get('nameEN') or state.get('nameCN') or "")
         items_info_by_ref[state_item.ref] = ItemInfo(
             id=None,
             type='state',
@@ -69,7 +74,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
             parent_ref=hazo_ch.get('parentId'),
             names={
                 'EN': hazo_ch['nameEN'],
-                'CN': hazo_ch['nameCN'],    
+                'CN': hazo_ch['nameCN'],
             },
             states_refs=hazo_ch['states'],
             pics=map(photo_to_picture, hazo_ch['photos']),
@@ -86,9 +91,9 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
             type='taxon',
             parent_ref=hazo_taxon.get('parentId'),
             names={
-                'EN': hazo_taxon['nameEN'], 
+                'EN': hazo_taxon['nameEN'],
                 'V': hazo_taxon['vernacularName'],
-                'CN': hazo_taxon['nameCN'],    
+                'CN': hazo_taxon['nameCN'],
             },
             website=hazo_taxon['website'],
             states_refs=states_refs,
@@ -106,8 +111,8 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
     pics = []
     hierarchies = []
     taxon_states = []
+
     for item in Item.objects.filter(dataset__id=ds.id):
-        hierarchies.append(Hierarchy(ancestor=item, descendant=item, length=0))
         info = items_info_by_ref.get(item.ref)
         if info is None:
             continue
@@ -118,13 +123,21 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
             names.append(item_name)
         for pic in info.pics:
             pics.append(ItemPicture(item=item, url=pic.url, label=pic.label))
-        
-    hierarchies_self = []
+
     for h_item in hierarchical_item:
-        item_id = items_info_by_ref[h_item.ref].id
+        item_info = items_info_by_ref[h_item.ref]
+        length = 0
+        item_id = item_info.id
         item = Item(id=item_id)
-        hierarchies_self.append(Hierarchy(ancestor=item, descendant=item, length=0))
-    Hierarchy.objects.bulk_create(hierarchies_self)
+        hierarchies.append(
+            Hierarchy(ancestor=item, descendant=item, length=length))
+        while item_info.parent_ref is not None:
+            length += 1
+            item_info = items_info_by_ref[item_info.parent_ref]
+            parent = Item(id=item_info.id)
+            hierarchies.append(
+                Hierarchy(ancestor=parent, descendant=item, length=length))
+
     for info in items_info_by_ref.values():
         if info.type == 'character':
             character = Character()
@@ -137,7 +150,8 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 state.character_id = info.id
                 states_by_id[state_info.id] = state
         elif info.type == 'taxon':
-            taxon = Taxon(author=info.author, description=info.detail, website=info.website)
+            taxon = Taxon(author=info.author,
+                          description=info.detail, website=info.website)
             taxon.item_id = info.id
             taxons.append(taxon)
             for state_ref in info.states_refs:
@@ -145,21 +159,15 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
                 ts.taxon_id = info.id
                 ts.state_id = items_info_by_ref[state_ref].id
                 taxon_states.append(ts)
-        if info.parent_ref is not None:
-            parent_id = items_info_by_ref[info.parent_ref].id
-            h = Hierarchy.objects.filter(descendant_id=parent_id)
-            nodes_to_item = []
-            for child_node in h:
-                node = Hierarchy(ancestor=child_node.ancestor, length=child_node.length + 1)
-                node.descendant_id = info.id
-                nodes_to_item.append(node)
-            Hierarchy.objects.bulk_create(nodes_to_item)
+
+    Hierarchy.objects.bulk_create(hierarchies)
     ItemName.objects.bulk_create(names)
     ItemPicture.objects.bulk_create(pics)
     Character.objects.bulk_create(characters)
     Taxon.objects.bulk_create(taxons)
     State.objects.bulk_create(states_by_id.values())
     TaxonState.objects.bulk_create(taxon_states)
+
 
 def import_hazo(src: pathlib.Path):
     with src.open("r") as input:

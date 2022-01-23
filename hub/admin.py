@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Book, Dataset, DictionaryEntry, DictionaryEntryByLang, DictionaryOrgan, DictionaryVersion, ExtraField, FileSharing, Icon, Language
+from .models import Book, Dataset, DictionaryEntry, DictionaryEntryByLang, DictionaryOrgan, DictionaryVersion, ExtraField, FileSharing, Hierarchy, Icon, Language
 
 
 admin.site.register(Dataset)
