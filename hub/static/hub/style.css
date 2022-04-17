@@ -107,8 +107,16 @@ button.selected-tab,
     height: 100%;
 }
 
+.float-left {
+    float: left;
+}
+
 .float-right {
     float: right;
+}
+
+.clear {
+    clear: both;
 }
 
 select {
@@ -658,14 +666,13 @@ div.invisible {
     color: inherit;
 }
 
-.blue-hover-line:hover,
-.blue-hover-line:hover ~ .blue-hover-line {
+.blue-hover-line:hover > .cell {
     background-color: rgb(37, 113, 212);
     color: white;
 }
 
 .blue-circle-hover:hover {
-    border: 1px solid rgb(37, 113, 212);;
+    border: 1px solid rgb(37, 113, 212);
     border-radius: 100%;
 }
 
@@ -743,5 +750,8 @@ div.invisible {
 
 .tree-grid .cell {
     border-left: 1px solid #e3e3e3;
+}
+
+.tree-grid .cell a {
     padding: 2px 1ch;
 }
