@@ -1,5 +1,6 @@
-import csv
 from io import StringIO
+from typing import List
+
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
@@ -12,6 +13,7 @@ from . import utils
 from ..codec.hazo import import_hazo
 from ..models import Character, Dataset, FileSharing, Taxon, TaxonState
 
+import csv
 import os
 import random
 import string
@@ -112,7 +114,7 @@ def list_view(req: HttpRequest):
     return render(req, 'hub/dataset_list.html', context)
 
 
-def _filter_by_charids(obj, char_ids: list):
+def _filter_by_charids(obj, char_ids: List[str]):
     for id in char_ids:
         obj = obj.filter(state__character__item__id=id)
     return obj
@@ -124,7 +126,7 @@ def summary(req: HttpRequest, file_name: str):
     dataset: Dataset = Dataset.objects.filter(src=file_path).first()
     if dataset is None:
         raise Http404(f"There is no dataset named {file_path}")
-    characters = Character.objects.filter(item__dataset=dataset)
+    characters = Character.from_dataset(dataset)
     selected_character_ids = list(map(int, req.POST.getlist('character')))
     if selected_character_ids:
         states_taxon_count = _filter_by_charids(TaxonState.objects, selected_character_ids)
@@ -165,7 +167,7 @@ def summary_csv(req: HttpRequest, file_name: str):
 
 
 @login_required
-def taxon(req: HttpRequest, id):
+def taxon(req: HttpRequest, id: str):
     taxon = Taxon.objects.select_related(
         'item').prefetch_related('item__pictures').get(item_id=id)
     if not taxon:

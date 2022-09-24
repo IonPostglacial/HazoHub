@@ -1,7 +1,18 @@
+from datetime import datetime
 from pathlib import Path
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.conf import settings
+
+
+def _item_owner_as_of(cls, datetime: datetime):
+    return cls.objects.select_related('item').select_related('item__creation_version').filter(
+            Q(item__creation_version__date__lte=datetime),
+            Q(item__deletion_version__isnull=True) | Q(item__deletion_version__gte=datetime))
+
+def _item_owner_from_dataset(cls, dataset):
+    return cls.objects.select_related('item').select_related('item__creation_version').filter(item__creation_version__dataset=dataset)
 
 
 class FileSharing(models.Model):
@@ -19,6 +30,16 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name
+
+class DatasetVersion(models.Model):
+    class Meta:
+        unique_together = (('dataset', 'number'),)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    number = models.IntegerField()
+    created_on = models.DateTimeField()
+
+    def __str__(self):
+        return f'{self.dataset} #{self.number} ({self.created_on.isoformat()})'
 
 class Icon(models.Model):
     path = models.FilePathField()
@@ -41,13 +62,11 @@ class Book(models.Model):
 
 class Item(models.Model):
     class Meta:
-        unique_together = (('ref', 'dataset'),)
+        unique_together = (('ref', 'creation_version'),)
     ref = models.CharField(max_length=8)
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    creation_version = models.ForeignKey(DatasetVersion, on_delete=models.CASCADE, related_name='created_items', null=True)
+    deletion_version = models.ForeignKey(DatasetVersion, on_delete=models.CASCADE, null=True, blank=True, related_name='deleted_items')
     name = models.CharField(max_length=256)
-
-    def __str__(self):
-        return self.name
 
 class ItemPicture(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="pictures")
@@ -90,6 +109,9 @@ class Hierarchy(models.Model):
 class Character(models.Model):
     item = models.OneToOneField(Item, on_delete=models.CASCADE, primary_key=True)
 
+    as_of = classmethod(_item_owner_as_of)
+    from_dataset = classmethod(_item_owner_from_dataset)
+
     def __str__(self):
         return str(self.item)
 
@@ -97,6 +119,9 @@ class State(models.Model):
     item = models.OneToOneField(Item, on_delete=models.CASCADE, primary_key=True)
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     color = models.CharField(max_length=8)
+
+    as_of = classmethod(_item_owner_as_of)
+    from_dataset = classmethod(_item_owner_from_dataset)
 
     def __str__(self):
         return str(self.item)
@@ -112,6 +137,9 @@ class Taxon(models.Model):
     author = models.CharField(max_length=256)
     description = models.TextField(null=True, blank=True)
     website = models.CharField(max_length=512, null=True, blank=True)
+
+    as_of = classmethod(_item_owner_as_of)
+    from_dataset = classmethod(_item_owner_from_dataset)
 
     def __str__(self):
         if self.author:
@@ -139,6 +167,10 @@ class TaxonState(models.Model):
         unique_together = (('taxon', 'state'),)
     taxon = models.ForeignKey(Taxon, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
+
+    @classmethod
+    def from_dataset(cls, dataset: Dataset):
+        return cls.objects.select_related('taxon', 'taxon__item').filter(state__item__creation_version__dataset=dataset)
 
     def __str__(self):
         return f'{self.taxon} > {self.state}'

@@ -51,7 +51,7 @@ def secure_filename(filename: str) -> str:
     return filename
 
 def download_images(file_path: Path):
-    pics = ItemPicture.objects.filter(item__dataset__src=file_path)
+    pics = ItemPicture.objects.filter(item__creation_version__dataset__src=file_path)
     for pic in pics:
         pic.url
         try:
