@@ -4,7 +4,7 @@ from django.http.response import Http404
 from django.shortcuts import render
 
 from . import utils
-from ..models import Character, Dataset, Hierarchy, State, TaxonState
+from ..models import Character, Dataset, FileSharing, Hierarchy, State, TaxonState
 
 
 @login_required
@@ -23,7 +23,14 @@ def list_view(req: HttpRequest, file_name: str, in_character: int = 0):
     if 'unselect-state' in req.POST:
         selected_states_ids.remove(req.POST['unselect-state'])
         req.session['selected_states'] = list(selected_states_ids)
-    file_path = utils.user_file_path(req.user, file_name)
+    if file_name.endswith("json"):
+        file_path = utils.user_file_path(req.user, file_name)
+    else:
+        file_sharing = FileSharing.objects.filter(share_link=file_name).first()
+        if not utils.user_can_access_file(req.user, file_sharing) or file_sharing is None:
+            raise Http404("Not found")
+        else:
+            file_path = file_sharing.file_path
     dataset: Dataset = Dataset.objects.filter(src=file_path).first()
     if dataset is None:
         raise Http404(f"There is no dataset named {file_path}")
@@ -31,8 +38,6 @@ def list_view(req: HttpRequest, file_name: str, in_character: int = 0):
     matching_taxons = TaxonState.objects.select_related('taxon', 'taxon__item').filter(state__item__dataset=dataset)
     for state in selected_states_ids:
         matching_taxons = matching_taxons.filter(state=state)
-    if not selected_states_ids:
-        matching_taxons = []
     matches = []
     for taxon_state in matching_taxons:
         matches.append({ 'name': taxon_state.taxon.item.name, 'id': taxon_state.taxon.item.id })

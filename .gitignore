@@ -1,4 +1,5 @@
 env
+hazoenv
 private
 .vscode
 *.sqlite3

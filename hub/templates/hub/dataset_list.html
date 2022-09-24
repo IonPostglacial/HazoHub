@@ -33,7 +33,11 @@
                         <div class="inline-block">
                             {% if file.imported %}
                             <a href="{% url 'summary' file.name %}">Summary</a>
+                            {% if file.shared %}
+                            <a href="{% url 'charlist' file.link %}">Identify</a>
+                            {% else %}
                             <a href="{% url 'charlist' file.name %}">Identify</a>
+                            {% endif %}
                             <button name="btn-reimport" value="{{ file.name }}">Re-import</button>
                             <button name="btn-download-img" value="{{ file.name }}">Download imgs</button>
                             {% else %}
