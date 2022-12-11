@@ -59,8 +59,10 @@
             <section class="flex-grow-1 medium-margin medium-padding">
                 <h2 class="nowrap">Matching taxons ({{ matches|length }})</h2>
                 <ul>
-                {% for taxon in matches %}
-                    <li><a href="{% url 'taxon' taxon.id %}">{{ taxon.name }}</a></li>
+                {% for m in matches %}
+                    <li>
+                        <a href="{% url 'taxon' m.id %}">{{ m.name }}</a>
+                    </li>
                 {% endfor %}
                 </ul>
             </section>

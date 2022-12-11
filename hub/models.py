@@ -11,8 +11,11 @@ def _item_owner_as_of(cls, datetime: datetime):
             Q(item__creation_version__date__lte=datetime),
             Q(item__deletion_version__isnull=True) | Q(item__deletion_version__gte=datetime))
 
-def _item_owner_from_dataset(cls, dataset):
-    return cls.objects.select_related('item').select_related('item__creation_version').filter(item__creation_version__dataset=dataset)
+def _item_owner_from_dataset_version(cls, version: 'DatasetVersion'):
+    return cls.objects.select_related('item').select_related('item__creation_version').filter(
+        Q(item__deletion_version__isnull=True) | Q(item__deletion_version__number__gt=version.number),
+        item__creation_version__dataset=version.dataset,
+        item__creation_version__number__lte=version.number)
 
 
 class FileSharing(models.Model):
@@ -37,6 +40,10 @@ class DatasetVersion(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     number = models.IntegerField()
     created_on = models.DateTimeField()
+
+    @classmethod
+    def last_for_dataset(cls, ds: Dataset):
+        return cls.objects.filter(dataset=ds).order_by('-number').first()
 
     def __str__(self):
         return f'{self.dataset} #{self.number} ({self.created_on.isoformat()})'
@@ -67,6 +74,9 @@ class Item(models.Model):
     creation_version = models.ForeignKey(DatasetVersion, on_delete=models.CASCADE, related_name='created_items', null=True)
     deletion_version = models.ForeignKey(DatasetVersion, on_delete=models.CASCADE, null=True, blank=True, related_name='deleted_items')
     name = models.CharField(max_length=256)
+
+    def __str__(self):
+        return f"{self.name} (v{self.creation_version.number})"
 
 class ItemPicture(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="pictures")
@@ -110,7 +120,7 @@ class Character(models.Model):
     item = models.OneToOneField(Item, on_delete=models.CASCADE, primary_key=True)
 
     as_of = classmethod(_item_owner_as_of)
-    from_dataset = classmethod(_item_owner_from_dataset)
+    from_dataset_version = classmethod(_item_owner_from_dataset_version)
 
     def __str__(self):
         return str(self.item)
@@ -121,7 +131,7 @@ class State(models.Model):
     color = models.CharField(max_length=8)
 
     as_of = classmethod(_item_owner_as_of)
-    from_dataset = classmethod(_item_owner_from_dataset)
+    from_dataset_version = classmethod(_item_owner_from_dataset_version)
 
     def __str__(self):
         return str(self.item)
@@ -132,6 +142,10 @@ class CharacterRequiredState(models.Model):
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
 
+class CharacterInherentState(models.Model):
+    character = models.OneToOneField(Character, on_delete=models.CASCADE, primary_key=True, related_name="inherent_state")
+    state = models.OneToOneField(State, on_delete=models.CASCADE, related_name="inherent_character")
+
 class Taxon(models.Model):
     item = models.OneToOneField(Item, on_delete=models.CASCADE, primary_key=True)
     author = models.CharField(max_length=256)
@@ -139,7 +153,7 @@ class Taxon(models.Model):
     website = models.CharField(max_length=512, null=True, blank=True)
 
     as_of = classmethod(_item_owner_as_of)
-    from_dataset = classmethod(_item_owner_from_dataset)
+    from_dataset_version = classmethod(_item_owner_from_dataset_version)
 
     def __str__(self):
         if self.author:
@@ -169,8 +183,11 @@ class TaxonState(models.Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE)
 
     @classmethod
-    def from_dataset(cls, dataset: Dataset):
-        return cls.objects.select_related('taxon', 'taxon__item').filter(state__item__creation_version__dataset=dataset)
+    def from_dataset_version(cls, version: DatasetVersion):
+        return cls.objects.select_related('taxon', 'taxon__item').filter(
+            Q(state__item__deletion_version__isnull=True) | Q(state__item__deletion_version__number__gt=version.number),
+            state__item__creation_version__dataset=version.dataset,
+            state__item__creation_version__number__lte=version.number)
 
     def __str__(self):
         return f'{self.taxon} > {self.state}'

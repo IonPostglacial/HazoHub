@@ -10,8 +10,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from . import utils
-from ..codec.hazo import import_hazo
-from ..models import Character, Dataset, FileSharing, Taxon, TaxonState
+from ..codec.hazojson import import_hazo
+from ..models import Character, Dataset, DatasetVersion, FileSharing, Taxon, TaxonState
 
 import csv
 import os
@@ -61,8 +61,6 @@ def list_view(req: HttpRequest):
     elif 'btn-reimport' in req.POST:
         file_name = req.POST['btn-reimport']
         file_path = utils.user_file_path(req.user, file_name)
-        ds = Dataset.objects.filter(src=file_path)
-        ds.delete()
         import_hazo(file_path)
     elif 'btn-import' in req.POST:
         file_name = req.POST['btn-import']
@@ -126,7 +124,8 @@ def summary(req: HttpRequest, file_name: str):
     dataset: Dataset = Dataset.objects.filter(src=file_path).first()
     if dataset is None:
         raise Http404(f"There is no dataset named {file_path}")
-    characters = Character.from_dataset(dataset)
+    version = DatasetVersion.last_for_dataset()
+    characters = Character.from_dataset_version(version)
     selected_character_ids = list(map(int, req.POST.getlist('character')))
     if selected_character_ids:
         states_taxon_count = _filter_by_charids(TaxonState.objects, selected_character_ids)
