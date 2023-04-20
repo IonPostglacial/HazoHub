@@ -145,7 +145,7 @@ def _import_dataset(src: pathlib.Path, input: io.TextIOBase):
         item = Item(id=item_id)
         hierarchies.append(
             Hierarchy(ancestor=item, descendant=item, length=length))
-        while item_info.parent_ref is not None:
+        while item_info.parent_ref is not None and item_info.parent_ref != "c0" and item_info.parent_ref != "t0":
             length += 1
             item_info = items_info_by_ref[item_info.parent_ref]
             parent = Item(id=item_info.id)

@@ -35,18 +35,25 @@ def _filtered_entry_list(req: HttpRequest):
         ))
     return entries, page_obj
 
-def _entry_details(req: HttpRequest, id):
-    entry = DictionaryEntry.objects.prefetch_related('translations').get(id=id)
+def _entry_details(req: HttpRequest, entry_id):
+    entry = DictionaryEntry.objects.prefetch_related('translations').get(id=entry_id)
     organs = DictionaryOrgan.objects.all()
+    languages = Language.objects.all()
     names = {}
     definitions = {}
     for entry_lang in entry.translations.all():
         names[entry_lang.lang.code] = entry_lang.name
         definitions[entry_lang.lang.code] = entry_lang.definition
+    for lang in languages:
+        if lang.code not in names:
+            names[lang.code] = ""
+        if lang.code not in definitions:
+            definitions[lang.code] = ""
+
     return {
         'organs': organs,
         'entry': {
-            'id': id,
+            'id': entry_id,
             'names': names,
             'illustration': entry.url,
             'organ': entry.organ,
@@ -60,6 +67,7 @@ def entry_list(req: HttpRequest):
     if 'add-entry' in req.POST and 'new-entry' in req.POST:
         new_entry_name = req.POST['new-entry']
         new_entry = DictionaryEntry.objects.create()
+        DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="S"), name=new_entry_name)
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="EN"), name=new_entry_name)
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="FR"), name="")
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="CN"), name="")
@@ -85,7 +93,7 @@ def entry_list(req: HttpRequest):
             nb = None
         entry.number = nb
         entry.save()
-        for lang in ("CN", "EN", "FR"):
+        for lang in ("S", "CN", "EN", "FR"):
             DictionaryEntryByLang.objects.filter(entry=entry, lang=Language(code=lang)).update(
                 name=req.POST.get(f'name-{lang}', ""),
                 definition=req.POST.get(f'def-{lang}', ""))
