@@ -41,14 +41,12 @@ def _entry_details(req: HttpRequest, entry_id):
     languages = Language.objects.all()
     names = {}
     definitions = {}
+    for lang in languages:
+        names[lang.code] = ""
+        definitions[lang.code] = ""
     for entry_lang in entry.translations.all():
         names[entry_lang.lang.code] = entry_lang.name
         definitions[entry_lang.lang.code] = entry_lang.definition
-    for lang in languages:
-        if lang.code not in names:
-            names[lang.code] = ""
-        if lang.code not in definitions:
-            definitions[lang.code] = ""
 
     return {
         'organs': organs,
