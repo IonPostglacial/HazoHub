@@ -66,6 +66,7 @@ def entry_list(req: HttpRequest):
         new_entry_name = req.POST['new-entry']
         new_entry = DictionaryEntry.objects.create()
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="S"), name=new_entry_name)
+        DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="V"), name="")
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="EN"), name=new_entry_name)
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="FR"), name="")
         DictionaryEntryByLang.objects.create(entry=new_entry, lang=Language(code="CN"), name="")
@@ -80,6 +81,7 @@ def entry_list(req: HttpRequest):
         except Exception as e:
             return HttpResponseBadRequest(e)
     elif 'edit-entry' in req.POST:
+        languages = Language.objects.all()
         entry_id = req.POST['edit-entry']
         entry = DictionaryEntry.objects.get(id=entry_id)
         entry.url = req.POST.get('illustration', "")
@@ -91,10 +93,20 @@ def entry_list(req: HttpRequest):
             nb = None
         entry.number = nb
         entry.save()
-        for lang in ("S", "CN", "EN", "FR"):
-            DictionaryEntryByLang.objects.filter(entry=entry, lang=Language(code=lang)).update(
-                name=req.POST.get(f'name-{lang}', ""),
-                definition=req.POST.get(f'def-{lang}', ""))
+        for lang in languages:
+            entry_name = DictionaryEntryByLang.objects.filter(entry=entry, lang=Language(code=lang.code))
+            name_for_lang = req.POST.get(f'name-{lang.code}', "")
+            definition_for_lang = req.POST.get(f'def-{lang.code}', "")
+            if entry_name.count() > 0:
+                entry_name.update(
+                    name=name_for_lang,
+                    definition=definition_for_lang)
+            else:
+                DictionaryEntryByLang.objects.create(
+                    entry=entry, 
+                    lang=Language(code=lang.code),
+                    name=name_for_lang,
+                    definition=definition_for_lang)
     elif 'del-entry' in req.POST:
         DictionaryEntry.objects.filter(id=req.POST['del-entry']).delete()
 
