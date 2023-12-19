@@ -1,34 +1,39 @@
 {% if entry %}
 <div class="horizontal-flexbox">
-    <div class="form-grid flex-grow-1 medium-padding">
-        {% for lang, name in entry.names.items %}
-        <label for="name-{{ lang }}">{{ lang }}</label><input type="text" name="name-{{ lang }}" id="name-{{ lang }}" value="{{ name }}">
-        {% endfor %}
-        <label for="illustration">Illustration</label>
-        <input type="text" name="illustration" id="illustration" value="{{ entry.illustration }}">
-        <label for="number">Number</label>
-        <input type="number" name="number" id="number" value="{{ entry.number }}">
-        <label for="organ">Organ</label>
-        <select name="organ" id="organ">
-            <option value="">&nbsp;</option>
-            {% for organ in organs %}
-                <option value="{{ organ.id }}" {% if organ.id == entry.organ.id %}selected{% endif %}>{{ organ.name }}</option>
+    <div class="vertical-flexbox">
+        <div class="form-grid flex-grow-1 medium-padding">
+            {% for lang, name in entry.names.items %}
+            <label for="name{{ lang }}">{{ lang }}</label><input type="text" name="name{{ lang }}" id="name{{ lang }}" value="{{ name }}">
             {% endfor %}
-            </select>
-        {% for lang, def in entry.definitions.items %}
-        <label for="def-{{ lang }}">Definition ({{ lang }})</label>
-        <textarea class="ckeditor flex-grow-1" name="def-{{ lang }}" id="def-{{ lang }}">
-            {{ def }}
-        </textarea>
-        {% endfor %}
-        <button type="submit" class="background-color-1" name="edit-entry" value="{{ entry.id }}">Save</button>
-        <script>
-            (function() {
-                const container = document.currentScript.parentElement;
-                console.log(container);
-                window.dict.hydrateRichEditors(container);
-            }());
-        </script>
+            <label for="illustration">Illustration</label>
+            <input type="text" name="illustration" id="illustration" value="{{ entry.illustration }}">
+            <label for="number">Number</label>
+            <input type="number" name="number" id="number" value="{{ entry.number }}">
+            <label for="organ">Organ</label>
+            <select name="organ" id="organ">
+                <option value="">&nbsp;</option>
+                {% for organ in organs %}
+                    <option value="{{ organ.id }}" {% if organ.id == entry.organ.id %}selected{% endif %}>{{ organ.name }}</option>
+                {% endfor %}
+                </select>
+            {% for lang, def in entry.definitions.items %}
+            <label for="def-{{ lang }}">Definition ({{ lang }})</label>
+            <textarea class="ckeditor flex-grow-1" name="def-{{ lang }}" id="def-{{ lang }}">
+                {{ def }}
+            </textarea>
+            {% endfor %}
+            <script>
+                (function() {
+                    const container = document.currentScript.parentElement;
+                    console.log(container);
+                    window.dict.hydrateRichEditors(container);
+                }());
+            </script>
+        </div>
+        <div class="horizontal-flexbox">
+            <button type="submit" class="background-color-1" name="edit-entry" value="{{ entry.id }}">Save</button>
+            <button type="button" onclick="window.dict.copyNames()">Copy names</button>
+        </div>
     </div>
     <div class="limited-width limited-height">
         <img src="{{ entry.illustration }}" class="max-container">

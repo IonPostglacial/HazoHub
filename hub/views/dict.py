@@ -95,7 +95,7 @@ def entry_list(req: HttpRequest):
         entry.save()
         for lang in languages:
             entry_name = DictionaryEntryByLang.objects.filter(entry=entry, lang=Language(code=lang.code))
-            name_for_lang = req.POST.get(f'name-{lang.code}', "")
+            name_for_lang = req.POST.get(f'name{lang.code}', "")
             definition_for_lang = req.POST.get(f'def-{lang.code}', "")
             if entry_name.count() > 0:
                 entry_name.update(

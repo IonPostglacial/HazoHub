@@ -40,7 +40,7 @@
             <a class="button" href="/admin">Go to Administration</a>
         </div>
     </nav>
-    <form class="main form-grid" method="POST">
+    <form name="main" class="main form-grid" method="POST">
         {% csrf_token %}
         <div id="entry-list" class="scroll">
             {% include 'hub/fragments/dict_list.html' %}

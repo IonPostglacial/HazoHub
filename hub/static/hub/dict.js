@@ -10,8 +10,16 @@
     
     function hydrateRichEditors(elt) {
         const richEditors = Array.from(elt.querySelectorAll(".ckeditor"));
-        console.log(richEditors);
         richEditors.forEach(hydrateEditor);
+    }
+
+    function copyNames(e) {
+        const names = [
+            document.forms.main.nameFR.value,
+            document.forms.main.nameEN.value,
+            document.forms.main.nameCN.value,
+        ];
+        navigator.clipboard.writeText(names.join("\t"))
     }
 
     window.addEventListener("load", function(e) {
@@ -19,6 +27,7 @@
     });
 
     window.dict = {
-        hydrateRichEditors
+        hydrateRichEditors,
+        copyNames,
     };
 }());

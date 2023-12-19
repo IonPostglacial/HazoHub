@@ -95,7 +95,7 @@ def list_view(req: HttpRequest):
     shared_files = { file.file_path: file for file in FileSharing.objects.all() }
     imported_files = { path for path in Dataset.objects.all().values_list('src', flat=True) }
     personal_files = []
-    for file in utils.user_files(req.user):
+    for file in sorted(utils.user_files(req.user)):
         if not file.is_dir():
             is_imported = str(file) in imported_files
             is_shared = str(file) in shared_files
