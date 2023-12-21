@@ -42,10 +42,10 @@
     </nav>
     <form name="main" class="main form-grid" method="POST">
         {% csrf_token %}
-        <div id="entry-list" class="scroll">
+        <div id="entry-list" class="scroll vertical-flexbox">
             {% include 'hub/fragments/dict_list.html' %}
         </div>
-        <div>
+        <div class="scroll">
             <div id="entry-details">
                 {% include 'hub/fragments/dict_details.html' %}
             </div>

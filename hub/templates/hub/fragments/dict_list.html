@@ -1,11 +1,6 @@
-<section>
+<section class="flex-grow-1 relative vertical-flexbox">
     <ul class="medium-padding medium-margin grid-1-4-1">
         {% include 'hub/fragments/dict_list_entries.html' %}
-        <li class="display-contents">
-            <div>&nbsp;</div>
-            <input type="text" name="new-entry" id="new-entry">
-            <button type="submit" class="background-color-1" name="add-entry">Add entry</button>
-        </li>
     </ul>
     <div class="centered-text">
         <span class="step-links">
@@ -23,5 +18,9 @@
                 <a href="?page={{ page_obj.paginator.num_pages }}{{ filter }}">last &raquo;</a>
             {% endif %}
         </span>
+    </div>
+    <div class="horizontal-flexbox stick-to-bottom">
+        <input type="text" name="new-entry" id="new-entry" class="flex-grow-1" onkeypress="dict.onAddEntryKeyPress(event)">
+        <button type="submit" class="background-color-1" name="add-entry" id="add-entry">Add entry</button>
     </div>
 </section>
