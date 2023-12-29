@@ -23,14 +23,21 @@
             <h2>Your list of databases</h2>
             <form method="POST">
             {% csrf_token %}
+            <input type="hidden" name="sort-by" value="{{ sort_key }}" />
+            {% if sort_key != 'name' %}
+                <button type="submit" name="set-sort-by" value="name">Sort by name</button>
+            {% endif %}
+            {% if sort_key != 'last_mod' %}
+                <button type="submit" name="set-sort-by" value="last_mod">Sort by date</button>
+            {% endif %}
             <ul id="db-grid-list">
                 {% for file in personal_files %}
                     <li class="file-list-item"
                             data-file="{{ file.name }}"
                             data-state="{% if file.shared %}shared{% else %}unshared{% endif %}">
                         <a class="private-link" href="{% url 'privatefiles' file.name %}">{{ file.name }}</a>
-                        <span>{{ file.last_mod }}</span>
                         <a href="/Hazo/#/?from={% url 'privatefiles' file.name %}">Open in Hazo</a>
+                            <span>{{ file.last_mod }}</span>
                         <div class="inline-block">
                             {% if file.imported %}
                             <a href="{% url 'summary' file.name %}">Summary</a>

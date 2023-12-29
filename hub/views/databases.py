@@ -17,6 +17,7 @@ import csv
 import os
 import random
 import string
+import datetime
 
 
 def _post_dataset(req: HttpRequest):
@@ -92,20 +93,26 @@ def list_view(req: HttpRequest):
         file_name = req.POST['btn-unshare']
         file_full_path = utils.user_file_path(req.user, file_name)
         FileSharing.objects.filter(file_path=str(file_full_path)).delete()
+    sort_key = req.POST.get('set-sort-by', req.POST.get('sort-by'))
+    print("sort_key", sort_key)
+    if sort_key not in ('last_mod', 'name'):
+        sort_key = 'name'
     shared_files = { file.file_path: file for file in FileSharing.objects.all() }
     imported_files = { path for path in Dataset.objects.all().values_list('src', flat=True) }
     personal_files = []
-    for file in sorted(utils.user_files(req.user)):
+    for file in utils.user_files(req.user):
         if not file.is_dir():
             is_imported = str(file) in imported_files
             is_shared = str(file) in shared_files
             link = ""
             if is_shared:
                 link = shared_files.get(str(file)).share_link
-            personal_files.append({ 'name': file.name, 'shared': is_shared, 'imported': is_imported, 'link': link })
+            personal_files.append({ 'last_mod': datetime.datetime.fromtimestamp(file.stat().st_mtime).strftime("%Y-%m-%d %H:%M"), 'name': file.name, 'shared': is_shared, 'imported': is_imported, 'link': link })
+    personal_files.sort(key=lambda f: f[sort_key].lower())
     context = {
         'status': status,
         'user': req.user,
+        'sort_key': sort_key,
         'error_msg': error_msg,
         'personal_files': personal_files,
     }
