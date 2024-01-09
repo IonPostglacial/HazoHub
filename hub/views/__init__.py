@@ -36,14 +36,19 @@ def api_upload_image(req: HttpRequest):
                 return JsonResponse({"status": "ko", "message": f"Error opening {req.method} {file_url}: {str(e)}"})
         return JsonResponse({"status": "ok", "url": str(Path('picture') / req.user.username / file_name)})
     elif 'file' in req.FILES:
-        file = req.FILES['file']
-        if not file:
-            return JsonResponse({"status": "ko", "message": "The provided file is invalid."})
-        else:
-            file_name = utils.secure_filename(file.filename)
-            file_path = req.user.personal_file_path(file_name)
-            file.save(str(file_path))
-            return JsonResponse({"status": "ok", "url": str(Path('picture') / req.user.username / file_name)})
+        try:
+            file = req.FILES['file']
+            if not file:
+                return JsonResponse({"status": "ko", "message": "The provided file is invalid."})
+            else:
+                file_name = Path(utils.secure_filename(file.name))
+                if file_name.suffix == '':
+                    file_name = file_name.with_suffix(".jpg")
+                file_path = utils.user_image_path(req.user, file_name)
+                file_path.write_bytes(file.file.read())
+                return JsonResponse({"status": "ok", "url": str(Path('picture') / req.user.username / file_name)})
+        except Exception as e:
+            return JsonResponse({"status": "ko", "message": str(e)})
     else:
         return JsonResponse({"status": "ko", "message": "no file provided"})
 
