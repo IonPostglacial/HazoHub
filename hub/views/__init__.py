@@ -23,7 +23,7 @@ def api_upload_image(req: HttpRequest):
     if 'file-url' in req.POST:
         file_url = req.POST['file-url']
         url = urllib.parse.urlparse(file_url)
-        file_name = utils.secure_filename(Path(url.path).name)
+        file_name = utils.secure_filename(Path("__".join(url[2:-1])).name)
         file_path = utils.user_image_path(req.user, file_name)
         if not file_path.exists():
             r = urllib.request.Request(file_url, method='GET', headers={
