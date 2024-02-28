@@ -18,6 +18,7 @@ import os
 import random
 import string
 import datetime
+import git
 
 
 def _post_dataset(req: HttpRequest):
@@ -30,9 +31,14 @@ def _post_dataset(req: HttpRequest):
     else:
         file_name = utils.secure_filename(file.name)
         file_path = utils.user_file_path(req.user, file_name)
-        if default_storage.exists(str(file_path)):
-            default_storage.delete(str(file_path))
-        default_storage.save(str(file_path), file)
+        file_path_s = str(file_path)
+        if default_storage.exists(file_path_s):
+            default_storage.delete(file_path_s)
+        default_storage.save(file_path_s, file)
+        folder = utils.user_private_folder(req.user)
+        repo = git.Repo(folder)
+        repo.index.add([file_path_s])
+        repo.index.commit("commit")
 
 
 def details(req: HttpRequest, dataset_link: str):
@@ -49,7 +55,9 @@ def details(req: HttpRequest, dataset_link: str):
 @login_required
 def list_view(req: HttpRequest):
     if not utils.user_private_folder(req.user).exists():
-        os.makedirs(utils.user_private_folder(req.user))
+        private_folder = utils.user_private_folder(req.user)
+        os.makedirs(private_folder)
+        git.Repo.init(private_folder)
         os.makedirs(utils.user_image_folder(req.user))
     status = "ko"
     error_msg = ""
