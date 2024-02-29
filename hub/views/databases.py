@@ -38,7 +38,7 @@ def _post_dataset(req: HttpRequest):
         folder = utils.user_private_folder(req.user)
         repo = git.Repo(folder)
         repo.index.add([file_path_s])
-        repo.index.commit("commit")
+        repo.index.commit(f"changes to dataset {file.name}")
 
 
 def details(req: HttpRequest, dataset_link: str):
