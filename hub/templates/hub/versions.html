@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'hub/style.css' %}">
+    <title>Document</title>
+    <style>
+        h1 { font-size: 14px; padding: 4px 8px; margin: 2px; }
+    </style>
+</head>
+<body>
+    <nav class="thin-border background-gradient-1 horizontal-flexbox space-between">
+        <a class="button" href="{% url 'datasetlist' %}">Back to Datasets</a>
+        <h1>Versions of {{ dataset_name }}</h1>
+        <a class="button" href="/admin">Go to Administration</a>
+    </nav>
+    <form method="POST" action="{% url 'versions' file_name %}" class="horizontal-flexbox">
+        {% csrf_token %}
+        <input type="hidden" name="filepath" value="{{ file_path }}">
+        <table>
+            <tr><th>Action</th><th>Date</th><th>Message</th></tr>
+        {% for commit in last_commits %}
+            <tr>
+                <td><button name="revert" value="{{ commit.hexsha }}">Revert</button></td>
+                <td>{{ commit.date }}</td>
+                <td>{{ commit.message }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    </form>
+</body>
+</html>

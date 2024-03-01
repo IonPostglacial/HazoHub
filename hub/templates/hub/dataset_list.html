@@ -37,7 +37,7 @@
                             data-state="{% if file.shared %}shared{% else %}unshared{% endif %}">
                         <a class="private-link" href="{% url 'privatefiles' file.name %}">{{ file.name }}</a>
                         <a href="/Hazo/#/?from={% url 'privatefiles' file.name %}">Open in Hazo</a>
-                            <span>{{ file.last_mod }}</span>
+                        <a href="{% url 'versions' file.name %}">{{ file.last_mod }}</a>
                         <div class="inline-block">
                             {% if file.imported %}
                             <a href="{% url 'summary' file.name %}">Summary</a>

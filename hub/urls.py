@@ -8,6 +8,7 @@ urlpatterns = [
     path('databases', views.databases.list_view, name="datasetlist"),
     path('dataset/<str:dataset_link>', views.databases.details, name="dataset"),
     path('taxon/<int:id>', views.databases.taxon, name="taxon"),
+    path('versions/<str:file_name>', views.databases.versions, name="versions"),
     path('summary/<str:file_name>', views.databases.summary, name="summary"),
     path('summary/<str:file_name>/export-csv', views.databases.summary_csv, name="summarycsv"),
     path('dictionary', views.dict.entry_list, name="dictentrylist"),

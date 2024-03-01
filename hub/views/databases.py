@@ -132,6 +132,34 @@ def _filter_by_charids(obj, char_ids: List[str]):
         obj = obj.filter(state__character__item__id=id)
     return obj
 
+def _commit_date(commit):
+    return datetime.datetime.fromtimestamp(commit.authored_date).strftime("%Y-%m-%d %H:%M")
+
+@login_required
+def versions(req: HttpRequest, file_name: str):
+    file_path = utils.user_file_path(req.user, file_name)
+    folder = utils.user_private_folder(req.user)
+    repo = git.Repo(folder)
+    if 'revert' in req.POST:
+        revision = req.POST['revert']
+        repo.git.checkout(revision, file_path)
+        repo.index.add([file_path])
+        commit = repo.commit(revision)
+        repo.index.commit(f"revert {file_name} to version from {_commit_date(commit)}: '{commit.message}'")
+    last_commits = []
+    for commit in repo.iter_commits(None, file_path, max_count=50):
+        last_commits.append({ 
+            'date': _commit_date(commit), 
+            'message': commit.message,
+            'hexsha': commit.hexsha
+        })
+
+    return render(req, 'hub/versions.html', {
+        'dataset_name': file_path.stem,
+        'file_name': file_name,
+        'file_path': file_path,
+        'last_commits': last_commits,
+    })
 
 @login_required
 def summary(req: HttpRequest, file_name: str):
