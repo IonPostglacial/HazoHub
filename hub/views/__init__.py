@@ -7,6 +7,7 @@ from django.shortcuts import render
 from pathlib import Path
 
 import urllib
+import uuid
 
 from . import databases, dict, identify, utils
 from ..models import Dataset, FileSharing, TaxonState
@@ -20,10 +21,10 @@ def index(req: HttpRequest):
 @login_required
 @csrf_exempt
 def api_upload_image(req: HttpRequest):
-    if 'file-url' in req.POST:
-        file_url = req.POST['file-url']
-        url = urllib.parse.urlparse(file_url)
-        file_name = utils.secure_filename(Path("__".join(url[2:-1])).name)
+    if 'file-url' in req.GET:
+        file_url = req.GET['file-url']
+        ext = Path(urllib.parse.urlparse(file_url).path).suffix
+        file_name = Path(str(uuid.uuid4())).with_suffix(ext or ".jpg")
         file_path = utils.user_image_path(req.user, file_name)
         if not file_path.exists():
             r = urllib.request.Request(file_url, method='GET', headers={
