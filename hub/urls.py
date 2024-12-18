@@ -13,6 +13,7 @@ urlpatterns = [
     path('summary/<str:file_name>/export-csv', views.databases.summary_csv, name="summarycsv"),
     path('dictionary', views.dict.entry_list, name="dictentrylist"),
     path('dictionary/delete/<int:id>', views.dict.delete_from_list, name="dictentrydeletefromlist"),
+    path('dictionary-export.csv', views.dict.export, name="dictionaryexport"),
     path('dictionary-filtered-list', views.dict.filtered_list, name="dictentryfilteredlist"),
     path('dictionary-filtered-list-entries', views.dict.filtered_list_entries, name="dictentryfilteredlistentries"),
     path('dictionary/<int:id>', views.dict.entry_details, name="dictentrydetails"),

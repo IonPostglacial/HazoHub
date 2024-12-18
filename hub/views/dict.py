@@ -2,7 +2,7 @@ import io
 from django.core.paginator import Page, Paginator
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
-from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponseBadRequest, FileResponse
 from django.shortcuts import redirect, render
 
 import codecs
@@ -61,6 +61,10 @@ def _entry_details(req: HttpRequest, entry_id):
     }
 
 @login_required
+def export(req: HttpRequest):
+    return FileResponse(dictionarycsv.export(), content_type="text/csv", filename="export.csv")
+
+@login_required
 def entry_list(req: HttpRequest):
     if 'add-entry' in req.POST and 'new-entry' in req.POST:
         new_entry_name = req.POST['new-entry']
@@ -78,6 +82,15 @@ def entry_list(req: HttpRequest):
             file = codecs.EncodedFile(req.FILES['csv-file'], "utf-8")
             with io.TextIOWrapper(file, encoding="utf-8") as text_file:
                 dictionarycsv.load(text_file)
+        except Exception as e:
+            return HttpResponseBadRequest(e)
+    elif 'replace-csv' in req.POST:
+        try:
+            if not 'csv-file' in req.FILES:
+                return HttpResponseBadRequest("Invalid request, missing 'csv-file' parameter.")
+            file = codecs.EncodedFile(req.FILES['csv-file'], "utf-8")
+            with io.TextIOWrapper(file, encoding="utf-8") as text_file:
+                dictionarycsv.replace(text_file)
         except Exception as e:
             return HttpResponseBadRequest(e)
     elif 'edit-entry' in req.POST:

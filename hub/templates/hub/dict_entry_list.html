@@ -35,7 +35,8 @@
                 {% csrf_token %}
                 <input type="text" name="new-entry" id="new-entry-hidden" class="invisible">
                 <input type="file" name="csv-file" id="csv-file">
-                <button type="submit" name="import-csv">Import CSV</button>
+                <button type="submit" name="replace-csv">Import CSV</button>
+                <a class="button" href="{% url 'dictionaryexport' %}" name="export-csv">Export CSV</a>
             </form>
             <a class="button" href="/admin">Go to Administration</a>
         </div>
