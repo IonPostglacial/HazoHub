@@ -38,22 +38,20 @@ def export():
         nameV, nameS, nameFR, nameEN, nameCN = "", "", "", "", ""
         defV, defS, defCN, defEN, defFR = "", "", "", "", ""
         for tr in entry.translations.all():
-            print(tr.lang, tr.name, tr.definition)
-            match tr.lang.code:
-                case "V":
-                    nameV = tr.name
-                    defV = tr.definition
-                case "S":
-                    nameS = tr.name
-                    defS = tr.definition
-                case "FR":
-                    nameFR = tr.name
-                    defFR = tr.definition
-                case "EN":
-                    nameEN = tr.name
-                    defEN = tr.definition
-                case "CN":
-                    nameCN = tr.name
-                    defCN = tr.definition
+            if tr.lang.code == "V":
+                nameV = tr.name
+                defV = tr.definition
+            elif tr.lang.code == "S":
+                nameS = tr.name
+                defS = tr.definition
+            elif tr.lang.code == "FR":
+                nameFR = tr.name
+                defFR = tr.definition
+            elif tr.lang.code == "EN":
+                nameEN = tr.name
+                defEN = tr.definition
+            elif tr.lang.code == "CN":
+                nameCN = tr.name
+                defCN = tr.definition
         w.writerow([entry.number, nameV, nameS, nameFR, nameEN, nameCN, defV, defS, defFR, defEN, defCN, entry.organ, entry.url])
     return buffer.getvalue()
