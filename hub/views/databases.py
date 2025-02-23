@@ -30,14 +30,15 @@ def _post_dataset(req: HttpRequest):
             "The provided file is invalid. Only Hazo dataset files are allowed.")
     else:
         file_name = utils.secure_filename(file.name)
-        file_path = utils.user_file_path(req.user, file_name)
+        file_path = utils.user_relative_file_path(req.user, file_name)
+        full_file_path = utils.user_file_path(req.user, file_name)
         file_path_s = str(file_path)
         if default_storage.exists(file_path_s):
             default_storage.delete(file_path_s)
         default_storage.save(file_path_s, file)
         folder = utils.user_private_folder(req.user)
         repo = git.Repo(folder)
-        repo.index.add([file_path_s])
+        repo.index.add([full_file_path])
         repo.index.commit(f"changes to dataset {file.name}")
 
 
@@ -54,8 +55,8 @@ def details(req: HttpRequest, dataset_link: str):
 
 @login_required
 def list_view(req: HttpRequest):
-    if not utils.user_private_folder(req.user).exists():
-        private_folder = utils.user_private_folder(req.user)
+    private_folder = utils.user_private_folder(req.user)
+    if not private_folder.exists():
         os.makedirs(private_folder)
         git.Repo.init(private_folder)
         os.makedirs(utils.user_image_folder(req.user))

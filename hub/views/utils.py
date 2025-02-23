@@ -2,16 +2,22 @@ from pathlib import Path
 from django.contrib.auth.base_user import AbstractBaseUser
 from hub.models import FileSharing, ItemPicture
 from django.core import files
+from django.core.files.storage import default_storage
 from io import BytesIO
 
 import requests
 import os, re
 
+HAZO_DOT_FOLDER = ".hazo"
+PRIVATE_DIR = Path('private')
+PRIVATE_PATH = Path(__file__).resolve().parent.parent.parent / PRIVATE_DIR
 
-PRIVATE_PATH = Path(__file__).resolve().parent.parent.parent / 'private'
 
 def user_private_folder(user: AbstractBaseUser) -> Path:
     return PRIVATE_PATH / user.get_username()
+
+def user_relative_private_folder(user: AbstractBaseUser) -> Path:
+    return PRIVATE_DIR / user.get_username()
 
 def user_image_folder(user: AbstractBaseUser) -> Path:
     return user_private_folder(user) / 'pictures'
@@ -20,7 +26,13 @@ def user_files(user: AbstractBaseUser) -> Path:
     return user_private_folder(user).iterdir()
 
 def user_images(user: AbstractBaseUser) -> Path:
-    return user_image_folder(user).iterdir()
+    return user_private_folder(user).iterdir()
+
+def user_file_path(user: AbstractBaseUser, file_path) -> Path:
+    return user_private_folder(user) / file_path
+
+def user_relative_file_path(user: AbstractBaseUser, file_path) -> Path:
+    return user_relative_private_folder(user) / file_path
 
 def user_file_path(user: AbstractBaseUser, file_path) -> Path:
     return user_private_folder(user) / file_path
