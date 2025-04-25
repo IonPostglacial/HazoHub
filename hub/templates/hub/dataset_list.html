@@ -55,7 +55,7 @@
                             <button class="button" type="submit" name="btn-unshare" value="{{ file.name }}">
                                 Unshare
                             </button>
-                            <a class="button" href="{% url 'dataset' file.link %}">link for sharing</a>
+                            <a class="button" href="/Hazo/#/?from={% url 'sharedfiles' file.link %}">link for sharing</a>
                             {% else %}
                             <button type="submit" class="button" name="btn-share" value="{{ file.name }}">
                                 Share

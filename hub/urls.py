@@ -6,7 +6,6 @@ from . import views
 urlpatterns = [
     path('', views.index, name="index"),
     path('databases', views.databases.list_view, name="datasetlist"),
-    path('dataset/<str:dataset_link>', views.databases.details, name="dataset"),
     path('taxon/<int:id>', views.databases.taxon, name="taxon"),
     path('versions/<str:file_name>', views.databases.versions, name="versions"),
     path('summary/<str:file_name>', views.databases.summary, name="summary"),

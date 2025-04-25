@@ -8,9 +8,9 @@ from io import BytesIO
 import requests
 import os, re
 
-HAZO_DOT_FOLDER = ".hazo"
+
 PRIVATE_DIR = Path('private')
-PRIVATE_PATH = Path(__file__).resolve().parent.parent.parent / PRIVATE_DIR
+PRIVATE_PATH = Path(default_storage.location) / PRIVATE_DIR
 
 
 def user_private_folder(user: AbstractBaseUser) -> Path:

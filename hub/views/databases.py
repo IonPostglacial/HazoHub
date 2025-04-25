@@ -67,7 +67,7 @@ def list_view(req: HttpRequest):
             _post_dataset(req)
             status = "ok"
         except Exception as e:
-            error_msg = str(e)
+            error_msg = "error uploading file "
     elif 'btn-reimport' in req.POST:
         file_name = req.POST['btn-reimport']
         file_path = utils.user_file_path(req.user, file_name)
@@ -103,7 +103,6 @@ def list_view(req: HttpRequest):
         file_full_path = utils.user_file_path(req.user, file_name)
         FileSharing.objects.filter(file_path=str(file_full_path)).delete()
     sort_key = req.POST.get('set-sort-by', req.POST.get('sort-by'))
-    print("sort_key", sort_key)
     if sort_key not in ('last_mod', 'name'):
         sort_key = 'name'
     shared_files = { file.file_path: file for file in FileSharing.objects.all() }
